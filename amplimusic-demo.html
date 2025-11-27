@@ -1,0 +1,1560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AmpliMusic - Stream Music & Podcasts</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎵</text></svg>">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Amazon Ember', 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1e 100%);
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        header {
+            background: rgba(15, 15, 30, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 60px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 20px;
+            font-weight: 700;
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .logo span {
+            color: #00A8E1;
+        }
+
+        nav {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #00A8E1;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .nav-item:hover {
+            color: #00c4ff;
+        }
+
+        .nav-item.active {
+            color: #00A8E1;
+        }
+
+        .nav-item.inactive {
+            color: #999;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .search-bar {
+            position: relative;
+        }
+
+        .search-bar input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            padding: 8px 16px 8px 40px;
+            border-radius: 20px;
+            width: 280px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .search-bar input:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.15);
+            border-color: #00A8E1;
+            width: 320px;
+        }
+
+        .search-bar::before {
+            content: '🔍';
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 16px;
+            z-index: 2;
+        }
+
+        .search-dropdown {
+            position: absolute;
+            top: 50px;
+            right: 0;
+            background: #1a1a2e;
+            border-radius: 12px;
+            padding: 24px;
+            width: 500px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            display: none;
+            z-index: 1000;
+        }
+
+        .search-dropdown.show {
+            display: block;
+        }
+
+        .search-section-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: #fff;
+        }
+
+        .genre-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .genre-btn {
+            background: linear-gradient(135deg, rgba(0, 168, 225, 0.2), rgba(138, 43, 226, 0.2));
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .genre-btn:hover {
+            background: linear-gradient(135deg, rgba(0, 168, 225, 0.4), rgba(138, 43, 226, 0.4));
+            transform: translateY(-2px);
+            border-color: #00A8E1;
+        }
+
+        .listen-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .listen-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .listen-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #00A8E1;
+            transform: translateY(-2px);
+        }
+
+        /* Search Results Page */
+        .search-results-page {
+            display: none;
+            padding: 40px 24px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .search-results-page.show {
+            display: block;
+        }
+
+        .back-button {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 24px;
+            transition: all 0.3s;
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .search-results-header {
+            margin-bottom: 32px;
+        }
+
+        .search-results-header h1 {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .search-results-count {
+            color: #999;
+            font-size: 16px;
+        }
+
+        .results-section {
+            margin-bottom: 48px;
+        }
+
+        .results-section h2 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #00A8E1;
+        }
+
+        .result-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .result-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(8px);
+        }
+
+        .result-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            flex-shrink: 0;
+        }
+
+        .result-info {
+            flex: 1;
+        }
+
+        .result-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .result-subtitle {
+            color: #999;
+            font-size: 14px;
+        }
+
+        .result-badge {
+            background: #00A8E1;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 80px 20px;
+        }
+
+        .no-results-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        .no-results h2 {
+            font-size: 24px;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+
+        .no-results p {
+            color: #999;
+            font-size: 16px;
+        }
+
+        /* Music Player Bar */
+        .player-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(180deg, #1a1a2e 0%, #0f0f1e 100%);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px 24px;
+            display: none;
+            align-items: center;
+            gap: 16px;
+            z-index: 1000;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .player-bar.show {
+            display: flex;
+        }
+
+        .player-content {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .player-artwork {
+            width: 56px;
+            height: 56px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .player-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .player-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 4px;
+        }
+
+        .player-artist {
+            font-size: 12px;
+            color: #999;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .player-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .player-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            border-radius: 50%;
+        }
+
+        .player-btn:hover {
+            color: #00A8E1;
+            background: rgba(0, 168, 225, 0.1);
+        }
+
+        .player-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            max-width: 600px;
+        }
+
+        .player-buttons {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .player-play-btn {
+            background: #fff;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #0f0f1e;
+            font-size: 20px;
+        }
+
+        .player-play-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .player-progress {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .player-time {
+            font-size: 11px;
+            color: #999;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #00A8E1;
+            border-radius: 2px;
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+
+        .player-volume {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 120px;
+        }
+
+        @media (max-width: 768px) {
+            .player-bar {
+                padding: 8px 16px;
+            }
+
+            .player-controls {
+                max-width: 400px;
+            }
+
+            .player-volume {
+                display: none;
+            }
+        }
+
+        .upgrade-btn {
+            background: linear-gradient(135deg, #00A8E1, #0091c7);
+            color: white;
+            padding: 8px 24px;
+            border: none;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .upgrade-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 168, 225, 0.4);
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .user-avatar:hover {
+            transform: scale(1.1);
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 40px 24px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, rgba(0, 168, 225, 0.2), rgba(138, 43, 226, 0.2));
+            border-radius: 16px;
+            padding: 48px;
+            margin-bottom: 48px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 340px;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(0, 168, 225, 0.3), transparent);
+            border-radius: 50%;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 50%;
+        }
+
+        .hero-tag {
+            color: #00A8E1;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        .hero-title {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #fff, #00c4ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            color: #ddd;
+            font-size: 16px;
+            margin-bottom: 28px;
+        }
+
+        .play-btn {
+            background: #00A8E1;
+            color: white;
+            padding: 14px 32px;
+            border: none;
+            border-radius: 24px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .play-btn:hover {
+            background: #00c4ff;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 168, 225, 0.4);
+        }
+
+        .hero-image {
+            position: relative;
+            z-index: 2;
+            width: 280px;
+            height: 280px;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .hero-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Section */
+        .section {
+            margin-bottom: 48px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .nav-arrows {
+            display: flex;
+            gap: 8px;
+        }
+
+        .arrow-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .arrow-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .see-all-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            padding: 8px 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .see-all-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: #00A8E1;
+        }
+
+        /* Card Grid */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .card:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-image {
+            width: 100%;
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            position: relative;
+        }
+
+        .card-title {
+            padding: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .card-subtitle {
+            padding: 0 12px 12px;
+            font-size: 12px;
+            color: #999;
+        }
+
+        /* Footer */
+        footer {
+            background: rgba(15, 15, 30, 0.95);
+            padding: 40px 24px 20px;
+            margin-top: 80px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 32px;
+            margin-bottom: 32px;
+        }
+
+        .footer-section h4 {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: #00A8E1;
+        }
+
+        .footer-link {
+            display: block;
+            color: #999;
+            text-decoration: none;
+            font-size: 13px;
+            margin-bottom: 12px;
+            transition: color 0.3s;
+        }
+
+        .footer-link:hover {
+            color: #00A8E1;
+        }
+
+        .footer-bottom {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .hero-content {
+                max-width: 100%;
+                margin-bottom: 32px;
+            }
+
+            .hero-title {
+                font-size: 36px;
+            }
+
+            .card-grid {
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            }
+
+            .search-bar input {
+                width: 200px;
+            }
+
+            nav {
+                gap: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <a href="#" class="logo" onclick="trackNavigation('Logo')">
+            🎵 <span>Ampli</span>Music
+        </a>
+        
+        <nav>
+            <a href="#" class="nav-item active" onclick="trackNavigation('Home')">
+                🏠 HOME
+            </a>
+            <a href="#" class="nav-item inactive" onclick="trackNavigation('Podcasts')">
+                🎙️ PODCASTS
+            </a>
+            <div class="nav-item inactive" onclick="trackNavigation('Library')">
+                📚 LIBRARY ▼
+            </div>
+        </nav>
+
+        <div class="header-right">
+            <div class="search-bar">
+                <input type="text" placeholder="Search" id="searchInput" 
+                    onkeypress="handleSearchKeypress(event)" 
+                    onfocus="showSearchDropdown()"
+                    onblur="hideSearchDropdown()">
+                <div class="search-dropdown" id="searchDropdown">
+                    <div class="search-section-title">Music By Genre</div>
+                    <div class="genre-grid">
+                        <button class="genre-btn" onmousedown="trackGenreClick('Country')">Country</button>
+                        <button class="genre-btn" onmousedown="trackGenreClick('Rock')">Rock</button>
+                        <button class="genre-btn" onmousedown="trackGenreClick('Rap & Hip-Hop')">Rap & Hip-Hop</button>
+                        <button class="genre-btn" onmousedown="trackGenreClick('Pop')">Pop</button>
+                        <button class="genre-btn" onmousedown="trackGenreClick('LATIN')">LATIN</button>
+                        <button class="genre-btn" onmousedown="trackGenreClick('R&B')">R&B</button>
+                        <button class="genre-btn" onmousedown="trackGenreClick('Christian & Gospel')">Christian & Gospel</button>
+                        <button class="genre-btn" onmousedown="trackGenreClick('Dance & Electronic')">Dance & Electronic</button>
+                        <button class="genre-btn" onmousedown="trackGenreClick('Kids & Family')">Kids & Family</button>
+                        <button class="genre-btn" onmousedown="trackGenreClick('Classical')">Classical</button>
+                        <button class="genre-btn" onmousedown="trackGenreClick('Jazz')">Jazz</button>
+                        <button class="genre-btn" onmousedown="trackGenreClick('Indie & Alternative')">Indie & Alternative</button>
+                    </div>
+                    <div class="search-section-title">Listen Your Way</div>
+                    <div class="listen-grid">
+                        <button class="listen-btn" onmousedown="trackListenClick('All-Access Playlists')">All-Access Playlists</button>
+                        <button class="listen-btn" onmousedown="trackListenClick('Charts')">Charts</button>
+                        <button class="listen-btn" onmousedown="trackListenClick('Playlists')">Playlists</button>
+                        <button class="listen-btn" onmousedown="trackListenClick('New Releases')">New Releases</button>
+                    </div>
+                </div>
+            </div>
+            <button class="upgrade-btn" onclick="trackUpgrade()">UPGRADE</button>
+            <div class="user-avatar" onclick="trackUserMenu()">AM</div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        <!-- Search Results Page -->
+        <div class="search-results-page" id="searchResultsPage">
+            <button class="back-button" onclick="goBackToHome()">← Back to Home</button>
+            <div class="search-results-header">
+                <h1>Search Results</h1>
+                <p class="search-results-count" id="resultsCount"></p>
+            </div>
+            <div id="searchResultsContainer"></div>
+        </div>
+
+        <!-- Home Page Content -->
+        <div id="homeContent">
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-content">
+                <div class="hero-tag">STATION</div>
+                <h1 class="hero-title">My Soundtrack</h1>
+                <p class="hero-subtitle">Starting with Taylor Swift, sombr and Olivia Dean</p>
+                <button class="play-btn" onclick="trackPlay('My Soundtrack')">
+                    ▶ Play
+                </button>
+            </div>
+            <div class="hero-image">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='280'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%2300A8E1;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%238B2BE2;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='280' height='280' fill='url(%23grad)'/%3E%3Ctext x='50%25' y='50%25' font-size='80' text-anchor='middle' dy='.3em' fill='white' opacity='0.8'%3E🎵%3C/text%3E%3C/svg%3E" alt="My Soundtrack">
+            </div>
+        </section>
+
+        <!-- Top Podcasts in Comedy -->
+        <section class="section">
+            <div class="section-header">
+                <h2 class="section-title">Top Podcasts in Comedy</h2>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div class="nav-arrows">
+                        <button class="arrow-btn" onclick="trackCarouselNav('Comedy', 'prev')">◀</button>
+                        <button class="arrow-btn" onclick="trackCarouselNav('Comedy', 'next')">▶</button>
+                    </div>
+                    <button class="see-all-btn" onclick="trackSeeAll('Comedy')">SEE ALL</button>
+                </div>
+            </div>
+            <div class="card-grid">
+                <div class="card" onclick="trackPodcastClick('Sh**ged Married Annoyed', 'comedy')">
+                    <div class="card-image" style="background: linear-gradient(135deg, #00A8E1, #C46200);">🎙️</div>
+                    <div class="card-title">Sh**ged Married Annoyed</div>
+                </div>
+                <div class="card" onclick="trackPodcastClick('Parenting Hell', 'comedy')">
+                    <div class="card-image" style="background: linear-gradient(135deg, #FF6B6B, #FFE66D);">🎙️</div>
+                    <div class="card-title">Parenting Hell with Rob Beckett & Josh Widdicombe</div>
+                </div>
+                <div class="card" onclick="trackPodcastClick('Help I Sexted My Boss', 'comedy')">
+                    <div class="card-image" style="background: linear-gradient(135deg, #E01E5A, #FF4D6D);">🎙️</div>
+                    <div class="card-title">Help I Sexted My Boss</div>
+                </div>
+                <div class="card" onclick="trackPodcastClick('Off Menu', 'comedy')">
+                    <div class="card-image" style="background: linear-gradient(135deg, #FFB627, #FF8C00);">🎙️</div>
+                    <div class="card-title">Off Menu with Ed Gamble and James Acaster</div>
+                </div>
+                <div class="card" onclick="trackPodcastClick('The Therapy Crouch', 'comedy')">
+                    <div class="card-image" style="background: linear-gradient(135deg, #FFFFFF, #FFE4E1);">🎙️</div>
+                    <div class="card-title">The Therapy Crouch</div>
+                </div>
+                <div class="card" onclick="trackPodcastClick('Staying Relevant', 'comedy')">
+                    <div class="card-image" style="background: linear-gradient(135deg, #4A148C, #7B1FA2);">🎙️</div>
+                    <div class="card-title">Staying Relevant</div>
+                </div>
+                <div class="card" onclick="trackPodcastClick('No Such Thing As A Fish', 'comedy')">
+                    <div class="card-image" style="background: linear-gradient(135deg, #FFD700, #000000);">🎙️</div>
+                    <div class="card-title">No Such Thing As A Fish</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Most Popular Podcasts -->
+        <section class="section">
+            <div class="section-header">
+                <h2 class="section-title">Most Popular Podcasts</h2>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div class="nav-arrows">
+                        <button class="arrow-btn" onclick="trackCarouselNav('Popular', 'prev')">◀</button>
+                        <button class="arrow-btn" onclick="trackCarouselNav('Popular', 'next')">▶</button>
+                    </div>
+                    <button class="see-all-btn" onclick="trackSeeAll('Popular')">SEE ALL</button>
+                </div>
+            </div>
+            <div class="card-grid">
+                <div class="card" onclick="trackPodcastClick('The Rest Is Politics', 'politics')">
+                    <div class="card-image" style="background: linear-gradient(135deg, #C8102E, #012169);">🎙️</div>
+                    <div class="card-title">The Rest Is Politics</div>
+                </div>
+                <div class="card" onclick="trackPodcastClick('RedHanded', 'crime')">
+                    <div class="card-image" style="background: linear-gradient(135deg, #8B0000, #000000);">🎙️</div>
+                    <div class="card-title">RedHanded</div>
+                </div>
+                <div class="card" onclick="trackPodcastClick('That Peter Crouch Podcast', 'sport')">
+                    <div class="card-image" style="background: linear-gradient(135deg, #00A8E1, #1E90FF);">⚽</div>
+                    <div class="card-title">That Peter Crouch Podcast</div>
+                </div>
+                <div class="card" onclick="trackPodcastClick('The Rest Is History', 'history')">
+                    <div class="card-image" style="background: linear-gradient(135deg, #8B4513, #D2691E);">🎙️</div>
+                    <div class="card-title">The Rest Is History</div>
+                </div>
+                <div class="card" onclick="trackPodcastClick('The Archers', 'drama')">
+                    <div class="card-image" style="background: linear-gradient(135deg, #228B22, #90EE90);">🎙️</div>
+                    <div class="card-title">The Archers</div>
+                </div>
+                <div class="card" onclick="trackPodcastClick('The Diary Of A CEO', 'technology')">
+                    <div class="card-image" style="background: linear-gradient(135deg, #000000, #FFD700);">💼</div>
+                    <div class="card-title">The Diary Of A CEO with Steven Bartlett</div>
+                </div>
+                <div class="card" onclick="trackPodcastClick('The News Agents', 'news')">
+                    <div class="card-image" style="background: linear-gradient(135deg, #00A8E1, #FFFFFF);">📰</div>
+                    <div class="card-title">The News Agents</div>
+                </div>
+            </div>
+        </section>
+        </div>
+        <!-- End Home Content -->
+    </main>
+
+    <!-- Music Player Bar -->
+    <div class="player-bar" id="playerBar">
+        <div class="player-content">
+            <div class="player-artwork" id="playerArtwork">🎵</div>
+            <div class="player-info">
+                <div class="player-title" id="playerTitle">Song Title</div>
+                <div class="player-artist" id="playerArtist">Artist Name</div>
+            </div>
+            <div class="player-actions">
+                <button class="player-btn" onclick="trackPlayerAction('like')" title="Like">♥</button>
+                <button class="player-btn" onclick="trackPlayerAction('more')" title="More">⋯</button>
+            </div>
+        </div>
+
+        <div class="player-controls">
+            <div class="player-buttons">
+                <button class="player-btn" onclick="trackPlayerAction('previous')" title="Previous">⏮</button>
+                <button class="player-play-btn" id="playPauseBtn" onclick="togglePlayPause()" title="Play/Pause">▶</button>
+                <button class="player-btn" onclick="trackPlayerAction('next')" title="Next">⏭</button>
+            </div>
+            <div class="player-progress">
+                <span class="player-time" id="currentTime">0:00</span>
+                <div class="progress-bar" onclick="seekProgress(event)">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <span class="player-time" id="totalTime">2:41</span>
+            </div>
+        </div>
+
+        <div class="player-volume">
+            <button class="player-btn" onclick="trackPlayerAction('mute')" title="Mute">🔊</button>
+            <div class="progress-bar" style="width: 80px;">
+                <div class="progress-fill" style="width: 70%;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>Explore</h4>
+                <a href="#" class="footer-link" onclick="trackFooterLink('Browse')">Browse</a>
+                <a href="#" class="footer-link" onclick="trackFooterLink('Podcasts')">Podcasts</a>
+                <a href="#" class="footer-link" onclick="trackFooterLink('Stations')">Stations</a>
+                <a href="#" class="footer-link" onclick="trackFooterLink('Charts')">Charts</a>
+            </div>
+            <div class="footer-section">
+                <h4>Premium</h4>
+                <a href="#" class="footer-link" onclick="trackFooterLink('Unlimited')">Unlimited</a>
+                <a href="#" class="footer-link" onclick="trackFooterLink('HD')">HD</a>
+                <a href="#" class="footer-link" onclick="trackFooterLink('Family Plan')">Family Plan</a>
+            </div>
+            <div class="footer-section">
+                <h4>Support</h4>
+                <a href="#" class="footer-link" onclick="trackFooterLink('Help')">Help</a>
+                <a href="#" class="footer-link" onclick="trackFooterLink('Contact')">Contact Us</a>
+                <a href="#" class="footer-link" onclick="trackFooterLink('FAQs')">FAQs</a>
+            </div>
+            <div class="footer-section">
+                <h4>Company</h4>
+                <a href="#" class="footer-link" onclick="trackFooterLink('About')">About</a>
+                <a href="#" class="footer-link" onclick="trackFooterLink('Careers')">Careers</a>
+                <a href="#" class="footer-link" onclick="trackFooterLink('Privacy')">Privacy</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            © 2025 AmpliMusic. Built for demonstration purposes with Amplitude Analytics.
+        </div>
+    </footer>
+
+    <!-- Amplitude Browser SDK 2.0 with Session Replay - Manual Loading for GDPR -->
+    <script src="https://cdn.amplitude.com/libs/analytics-browser-2.11.2-min.js.gz"></script>
+    <script src="https://cdn.amplitude.com/libs/plugin-session-replay-browser-1.20.1-min.js.gz"></script>
+
+    <script>
+        // Amplitude Configuration - Initialize immediately for Session Replay demo
+        const AMPLITUDE_API_KEY = '56f1bd5be237cbdd88d9aa63dbaa04c7';
+
+        // Initialize Amplitude with Session Replay
+        window.amplitude.add(window.sessionReplay.plugin({sampleRate: 1}));
+        window.amplitude.init(AMPLITUDE_API_KEY, {
+            fetchRemoteConfig: true,
+            autocapture: {
+                attribution: true,
+                pageViews: true,
+                sessions: true,
+                formInteractions: false,
+                fileDownloads: false,
+                elementInteractions: false
+            }
+        });
+
+        console.log('✅ Amplitude Analytics initialized with Session Replay');
+
+        // Search Database
+        const searchDatabase = [
+            // Songs
+            { type: 'song', name: 'Anti-Hero', artist: 'Taylor Swift', album: 'Midnights', emoji: '🎵' },
+            { type: 'song', name: 'Cruel Summer', artist: 'Taylor Swift', album: 'Lover', emoji: '🎵' },
+            { type: 'song', name: 'Flowers', artist: 'Miley Cyrus', album: 'Endless Summer Vacation', emoji: '🎵' },
+            { type: 'song', name: 'As It Was', artist: 'Harry Styles', album: "Harry's House", emoji: '🎵' },
+            { type: 'song', name: 'Blinding Lights', artist: 'The Weeknd', album: 'After Hours', emoji: '🎵' },
+            { type: 'song', name: 'Ordinary', artist: 'Alex Warren', album: 'Single', emoji: '🎵' },
+            { type: 'song', name: 'Good Days', artist: 'SZA', album: 'Single', emoji: '🎵' },
+            { type: 'song', name: 'Levitating', artist: 'Dua Lipa', album: 'Future Nostalgia', emoji: '🎵' },
+            { type: 'song', name: 'Shivers', artist: 'Ed Sheeran', album: '=', emoji: '🎵' },
+            { type: 'song', name: 'Heat Waves', artist: 'Glass Animals', album: 'Dreamland', emoji: '🎵' },
+            
+            // Artists
+            { type: 'artist', name: 'Taylor Swift', genre: 'Pop', followers: '100M+', emoji: '👤' },
+            { type: 'artist', name: 'The Weeknd', genre: 'R&B', followers: '80M+', emoji: '👤' },
+            { type: 'artist', name: 'Ed Sheeran', genre: 'Pop', followers: '90M+', emoji: '👤' },
+            { type: 'artist', name: 'Olivia Dean', genre: 'Soul', followers: '2M+', emoji: '👤' },
+            { type: 'artist', name: 'SZA', genre: 'R&B', followers: '50M+', emoji: '👤' },
+            { type: 'artist', name: 'Harry Styles', genre: 'Pop/Rock', followers: '70M+', emoji: '👤' },
+            { type: 'artist', name: 'Miley Cyrus', genre: 'Pop', followers: '60M+', emoji: '👤' },
+            
+            // Podcasts
+            { type: 'podcast', name: 'Sh**ged Married Annoyed', host: 'Chris & Rosie Ramsey', category: 'Comedy', emoji: '🎙️' },
+            { type: 'podcast', name: 'Parenting Hell', host: 'Rob Beckett & Josh Widdicombe', category: 'Comedy', emoji: '🎙️' },
+            { type: 'podcast', name: 'Help I Sexted My Boss', host: 'Various', category: 'Comedy', emoji: '🎙️' },
+            { type: 'podcast', name: 'Off Menu', host: 'Ed Gamble & James Acaster', category: 'Comedy', emoji: '🎙️' },
+            { type: 'podcast', name: 'The Therapy Crouch', host: 'Peter & Abbey Crouch', category: 'Comedy', emoji: '🎙️' },
+            { type: 'podcast', name: 'The Rest Is Politics', host: 'Alastair Campbell & Rory Stewart', category: 'News', emoji: '🎙️' },
+            { type: 'podcast', name: 'RedHanded', host: 'Suruthi & Hannah', category: 'True Crime', emoji: '🎙️' },
+            { type: 'podcast', name: 'The Diary Of A CEO', host: 'Steven Bartlett', category: 'Business', emoji: '🎙️' },
+            
+            // Playlists
+            { type: 'playlist', name: 'Top Hits 2025', curator: 'AmpliMusic', tracks: '50 songs', emoji: '📝' },
+            { type: 'playlist', name: 'Chill Vibes', curator: 'AmpliMusic', tracks: '80 songs', emoji: '📝' },
+            { type: 'playlist', name: 'Workout Mix', curator: 'AmpliMusic', tracks: '100 songs', emoji: '📝' },
+            { type: 'playlist', name: 'Acoustic Covers', curator: 'AmpliMusic', tracks: '45 songs', emoji: '📝' },
+            { type: 'playlist', name: 'Summer Hits', curator: 'AmpliMusic', tracks: '70 songs', emoji: '📝' },
+        ];
+
+        // Search functionality
+        function performSearch(query) {
+            if (!query || query.trim().length === 0) return;
+
+            const searchTerm = query.trim().toLowerCase();
+            const results = searchDatabase.filter(item => {
+                return item.name.toLowerCase().includes(searchTerm) ||
+                       (item.artist && item.artist.toLowerCase().includes(searchTerm)) ||
+                       (item.host && item.host.toLowerCase().includes(searchTerm)) ||
+                       (item.genre && item.genre.toLowerCase().includes(searchTerm)) ||
+                       (item.category && item.category.toLowerCase().includes(searchTerm));
+            });
+
+            displaySearchResults(results, searchTerm);
+        }
+
+        function displaySearchResults(results, searchTerm) {
+            // Hide home content, show search results
+            document.getElementById('homeContent').style.display = 'none';
+            document.getElementById('searchResultsPage').classList.add('show');
+
+            const resultsContainer = document.getElementById('searchResultsContainer');
+            const resultsCount = document.getElementById('resultsCount');
+
+            if (results.length === 0) {
+                resultsCount.textContent = `No results found for "${searchTerm}"`;
+                resultsContainer.innerHTML = `
+                    <div class="no-results">
+                        <div class="no-results-icon">🔍</div>
+                        <h2>No results found</h2>
+                        <p>Try searching for songs, artists, podcasts, or playlists</p>
+                    </div>
+                `;
+                return;
+            }
+
+            resultsCount.textContent = `Found ${results.length} result${results.length !== 1 ? 's' : ''} for "${searchTerm}"`;
+
+            // Group results by type
+            const songs = results.filter(r => r.type === 'song');
+            const artists = results.filter(r => r.type === 'artist');
+            const podcasts = results.filter(r => r.type === 'podcast');
+            const playlists = results.filter(r => r.type === 'playlist');
+
+            let html = '';
+
+            if (songs.length > 0) {
+                html += '<div class="results-section"><h2>Songs</h2>';
+                songs.forEach(song => {
+                    html += `
+                        <div class="result-item" onclick="trackResultClick('song', '${song.name}', '${song.artist}')">
+                            <div class="result-image">${song.emoji}</div>
+                            <div class="result-info">
+                                <div class="result-title">${song.name}</div>
+                                <div class="result-subtitle">${song.artist} • ${song.album}</div>
+                            </div>
+                            <span class="result-badge">Song</span>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+
+            if (artists.length > 0) {
+                html += '<div class="results-section"><h2>Artists</h2>';
+                artists.forEach(artist => {
+                    html += `
+                        <div class="result-item" onclick="trackResultClick('artist', '${artist.name}', '${artist.genre}')">
+                            <div class="result-image">${artist.emoji}</div>
+                            <div class="result-info">
+                                <div class="result-title">${artist.name}</div>
+                                <div class="result-subtitle">${artist.genre} • ${artist.followers} followers</div>
+                            </div>
+                            <span class="result-badge">Artist</span>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+
+            if (podcasts.length > 0) {
+                html += '<div class="results-section"><h2>Podcasts</h2>';
+                podcasts.forEach(podcast => {
+                    html += `
+                        <div class="result-item" onclick="trackResultClick('podcast', '${podcast.name}', '${podcast.host}')">
+                            <div class="result-image">${podcast.emoji}</div>
+                            <div class="result-info">
+                                <div class="result-title">${podcast.name}</div>
+                                <div class="result-subtitle">${podcast.host} • ${podcast.category}</div>
+                            </div>
+                            <span class="result-badge">Podcast</span>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+
+            if (playlists.length > 0) {
+                html += '<div class="results-section"><h2>Playlists</h2>';
+                playlists.forEach(playlist => {
+                    html += `
+                        <div class="result-item" onclick="trackResultClick('playlist', '${playlist.name}', '${playlist.curator}')">
+                            <div class="result-image">${playlist.emoji}</div>
+                            <div class="result-info">
+                                <div class="result-title">${playlist.name}</div>
+                                <div class="result-subtitle">By ${playlist.curator} • ${playlist.tracks}</div>
+                            </div>
+                            <span class="result-badge">Playlist</span>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+
+            resultsContainer.innerHTML = html;
+        }
+
+        function goBackToHome() {
+            document.getElementById('homeContent').style.display = 'block';
+            document.getElementById('searchResultsPage').classList.remove('show');
+            document.getElementById('searchInput').value = '';
+            
+            if (window.amplitude) {
+                window.amplitude.track('Back to Home Clicked', {
+                    source: 'search_results'
+                });
+            }
+        }
+
+        function trackResultClick(type, name, metadata) {
+            if (window.amplitude) {
+                window.amplitude.track('Search Result Clicked', {
+                    result_type: type,
+                    result_name: name,
+                    result_metadata: metadata
+                });
+            }
+            // Play the content
+            playContent(type, name, metadata);
+        }
+
+        // Music Player Functionality
+        let isPlaying = false;
+        let progressInterval = null;
+        let currentProgress = 0;
+        let currentContent = {
+            type: null,
+            title: null,
+            artist: null,
+            genre: null
+        };
+
+        function playContent(type, title, artist, genre = null) {
+            // Store current content metadata
+            currentContent = {
+                type: type,
+                title: title,
+                artist: artist,
+                genre: genre
+            };
+
+            // Show player bar
+            document.getElementById('playerBar').classList.add('show');
+            
+            // Update player info
+            document.getElementById('playerTitle').textContent = title;
+            document.getElementById('playerArtist').textContent = artist || 'Unknown Artist';
+            
+            // Set emoji based on type
+            const emojiMap = {
+                'song': '🎵',
+                'artist': '👤',
+                'podcast': '🎙️',
+                'playlist': '📝',
+                'station': '🎵'
+            };
+            document.getElementById('playerArtwork').textContent = emojiMap[type] || '🎵';
+            
+            // Start "playing"
+            startPlayback();
+            
+            // Track event with genre if available
+            if (window.amplitude) {
+                const eventProperties = {
+                    content_type: type,
+                    content_title: title,
+                    content_artist: artist
+                };
+                if (genre) {
+                    eventProperties.genre = genre;
+                }
+                window.amplitude.track('Content Played', eventProperties);
+            }
+        }
+
+        function startPlayback() {
+            isPlaying = true;
+            document.getElementById('playPauseBtn').textContent = '⏸';
+            currentProgress = 0;
+            
+            // Animate progress bar
+            if (progressInterval) clearInterval(progressInterval);
+            progressInterval = setInterval(() => {
+                currentProgress += 0.5; // Increase by 0.5% every 100ms
+                if (currentProgress >= 100) {
+                    currentProgress = 0; // Loop
+                }
+                updateProgressBar();
+            }, 100);
+        }
+
+        function stopPlayback() {
+            isPlaying = false;
+            document.getElementById('playPauseBtn').textContent = '▶';
+            if (progressInterval) {
+                clearInterval(progressInterval);
+                progressInterval = null;
+            }
+        }
+
+        function togglePlayPause() {
+            if (isPlaying) {
+                stopPlayback();
+                if (window.amplitude) {
+                    const eventProperties = {
+                        content_type: currentContent.type,
+                        content_title: currentContent.title
+                    };
+                    if (currentContent.genre) {
+                        eventProperties.genre = currentContent.genre;
+                    }
+                    window.amplitude.track('Player Paused', eventProperties);
+                }
+            } else {
+                startPlayback();
+                if (window.amplitude) {
+                    const eventProperties = {
+                        content_type: currentContent.type,
+                        content_title: currentContent.title
+                    };
+                    if (currentContent.genre) {
+                        eventProperties.genre = currentContent.genre;
+                    }
+                    window.amplitude.track('Player Resumed', eventProperties);
+                }
+            }
+        }
+
+        function updateProgressBar() {
+            document.getElementById('progressFill').style.width = currentProgress + '%';
+            
+            // Update time display
+            const totalSeconds = 161; // 2:41
+            const current = Math.floor((currentProgress / 100) * totalSeconds);
+            const minutes = Math.floor(current / 60);
+            const seconds = current % 60;
+            document.getElementById('currentTime').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function seekProgress(event) {
+            const bar = event.currentTarget;
+            const rect = bar.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const width = rect.width;
+            currentProgress = (x / width) * 100;
+            updateProgressBar();
+            
+            if (window.amplitude) {
+                const eventProperties = {
+                    seek_position: Math.round(currentProgress),
+                    content_type: currentContent.type,
+                    content_title: currentContent.title
+                };
+                if (currentContent.genre) {
+                    eventProperties.genre = currentContent.genre;
+                }
+                window.amplitude.track('Player Seeked', eventProperties);
+            }
+        }
+
+        function trackPlayerAction(action) {
+            if (action === 'like') {
+                // Track explicit "Content Favourited" event
+                if (window.amplitude) {
+                    const eventProperties = {
+                        content_type: currentContent.type,
+                        content_title: currentContent.title,
+                        content_artist: currentContent.artist
+                    };
+                    if (currentContent.genre) {
+                        eventProperties.genre = currentContent.genre;
+                    }
+                    window.amplitude.track('Content Favourited', eventProperties);
+                }
+            } else {
+                // Track other player actions
+                if (window.amplitude) {
+                    const eventProperties = {
+                        action: action,
+                        content_type: currentContent.type,
+                        content_title: currentContent.title
+                    };
+                    if (currentContent.genre) {
+                        eventProperties.genre = currentContent.genre;
+                    }
+                    window.amplitude.track('Player Action Clicked', eventProperties);
+                }
+            }
+        }
+
+        // Manual Event Tracking Functions
+        function handleSearchKeypress(event) {
+            if (event.key === 'Enter') {
+                const searchTerm = document.getElementById('searchInput').value.trim();
+                if (searchTerm.length > 0) {
+                    // Track search event
+                    if (window.amplitude) {
+                        window.amplitude.track('Search Started', {
+                            search_term: searchTerm
+                        });
+                    }
+                    // Perform search
+                    performSearch(searchTerm);
+                    // Hide dropdown
+                    hideSearchDropdown();
+                }
+            }
+        }
+
+        function showSearchDropdown() {
+            const dropdown = document.getElementById('searchDropdown');
+            if (dropdown) {
+                dropdown.classList.add('show');
+            }
+            if (window.amplitude) {
+                window.amplitude.track('Search Bar Focused');
+            }
+        }
+
+        function hideSearchDropdown() {
+            // Delay to allow button clicks to register
+            setTimeout(() => {
+                const dropdown = document.getElementById('searchDropdown');
+                if (dropdown) {
+                    dropdown.classList.remove('show');
+                }
+            }, 200);
+        }
+
+        function trackGenreClick(genre) {
+            if (window.amplitude) {
+                window.amplitude.track('Genre Clicked', {
+                    genre_name: genre,
+                    source: 'search_dropdown'
+                });
+            }
+        }
+
+        function trackListenClick(category) {
+            if (window.amplitude) {
+                window.amplitude.track('Listen Category Clicked', {
+                    category_name: category,
+                    source: 'search_dropdown'
+                });
+            }
+        }
+
+        function trackNavigation(item) {
+            if (window.amplitude) {
+                window.amplitude.track('Navigation Item Clicked', {
+                    nav_item: item
+                });
+            }
+        }
+
+        function trackUpgrade() {
+            if (window.amplitude) {
+                window.amplitude.track('Upgrade Clicked');
+            }
+        }
+
+        function trackUserMenu() {
+            if (window.amplitude) {
+                window.amplitude.track('User Menu Clicked');
+            }
+        }
+
+        function trackPlay(station) {
+            if (window.amplitude) {
+                window.amplitude.track('Play Button Clicked', {
+                    station_name: station,
+                    location: 'hero'
+                });
+            }
+            playContent('station', station, 'Starting with Taylor Swift, sombr and Olivia Dean');
+        }
+
+        function trackPodcastClick(podcastName, genre) {
+            if (window.amplitude) {
+                window.amplitude.track('Podcast Clicked', {
+                    podcast_name: podcastName,
+                    genre: genre
+                });
+            }
+            playContent('podcast', podcastName, 'Podcast', genre);
+        }
+
+        function trackCarouselNav(section, direction) {
+            if (window.amplitude) {
+                window.amplitude.track('Carousel Navigation Clicked', {
+                    section: section,
+                    direction: direction
+                });
+            }
+        }
+
+        function trackSeeAll(section) {
+            if (window.amplitude) {
+                window.amplitude.track('See All Clicked', {
+                    section: section
+                });
+            }
+        }
+
+        function trackFooterLink(linkName) {
+            if (window.amplitude) {
+                window.amplitude.track('Footer Link Clicked', {
+                    link_name: linkName
+                });
+            }
+        }
+    </script>
+</body>
+</html>
+
